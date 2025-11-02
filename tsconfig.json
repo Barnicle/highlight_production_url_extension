@@ -3,10 +3,10 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["DOM", "ES2020"],
-  "types": ["node", "chrome"],
-  "jsx": "react-jsx",
-  "jsxImportSource": "react",
-  "module": "ESNext",
+    "types": ["node", "chrome"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "module": "ESNext",
     "moduleResolution": "Node",
     "strict": true,
     "esModuleInterop": true,
@@ -14,5 +14,5 @@
     "sourceMap": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*", "manifest.json"]
+  "include": ["src/**/*", "eslint.config.mjs", "manifest.json"]
 }
