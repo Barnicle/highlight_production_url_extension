@@ -1,8 +1,7 @@
-# Highlight Production URL - Vite + TypeScript Extension Boilerplate
-
-This is a minimal boilerplate for building a Manifest V3 browser extension using Vite and TypeScript.
+# Highlight Production URL - Vite + TypeScript Extension
 
 Key files:
+
 - `public/manifest.json` - extension manifest
 - `src/` - source TypeScript and HTML files
 - `vite.config.ts` - Vite config using `vite-plugin-crx` to bundle MV3

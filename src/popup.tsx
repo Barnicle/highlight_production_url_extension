@@ -28,7 +28,9 @@ function App() {
 
   async function addHost() {
     const host = normalizeHost(address);
+
     if (!host) return;
+
     const next = Array.from(new Set([host, ...hosts]));
     await chrome.storage.local.set({ hosts: next });
     setHosts(next);
@@ -54,14 +56,15 @@ function App() {
   return (
     <div style={{ padding: 12, minWidth: 320 }}>
       <Space direction="vertical" style={{ width: '100%' }}>
-        <Input
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="Enter hostname (e.g., example.com)"
-        />
-        <Space>
+        <Space.Compact style={{ width: '100%' }}>
+          <Input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Enter hostname (e.g., example.com)"
+          />
           <Button onClick={addHost}>Add</Button>
-        </Space>
+        </Space.Compact>
+        <Space></Space>
         <div>
           {hosts.length === 0 ? (
             <div style={{ color: '#666' }}>No saved hosts</div>
