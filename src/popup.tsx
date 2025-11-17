@@ -18,7 +18,6 @@ const App: FC = () => {
       await chrome.storage.local.set({ hosts: next });
       setHosts(next);
       setAddress('');
-      chrome.runtime.sendMessage({ type: 'refresh-highlights' });
     } catch {
       console.error('Failed to add host');
     }
@@ -30,7 +29,6 @@ const App: FC = () => {
         const next = hosts.filter((x) => x !== h);
         await chrome.storage.local.set({ hosts: next });
         setHosts(next);
-        chrome.runtime.sendMessage({ type: 'refresh-highlights' });
       } catch {
         console.error('Failed to add host');
       }
