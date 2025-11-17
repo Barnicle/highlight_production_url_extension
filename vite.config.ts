@@ -1,11 +1,7 @@
 import { defineConfig } from 'vite';
 import { crx } from '@crxjs/vite-plugin';
 import manifest from './public/manifest.json';
-import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = resolve(filename, '..');
+import { dirname, resolve } from 'path';
 
 export default defineConfig({
   plugins: [crx({ manifest })],
@@ -13,8 +9,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+        warn(warning);
+      },
       input: {
-        popup: resolve(dirname, 'src/popup.html'),
+        popup: resolve(dirname('./'), 'src/popup.html'),
       },
     },
   },
