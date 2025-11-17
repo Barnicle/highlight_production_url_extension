@@ -1,23 +1,47 @@
-import { useEffect, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Input, Button, Space } from 'antd';
 import 'antd/dist/reset.css';
+import { normalizeHost } from './common/helpers';
 
-function normalizeHost(input: string) {
-  let host = input.trim();
-  try {
-    if (host.includes('://')) host = new URL(host).hostname;
-    else host = host.split('/')[0];
-    host = host.split(':')[0];
-  } catch {
-    // fallback: use raw
-  }
-  return host;
-}
-
-function App() {
+const App: FC = () => {
   const [address, setAddress] = useState('');
   const [hosts, setHosts] = useState<string[]>([]);
+
+  const addHost = useCallback(async () => {
+    const host = normalizeHost(address);
+
+    if (!host) return;
+
+    const next = Array.from(new Set([host, ...hosts]));
+    try {
+      await chrome.storage.local.set({ hosts: next });
+      setHosts(next);
+      setAddress('');
+      chrome.runtime.sendMessage({ type: 'refresh-highlights' });
+    } catch {
+      console.error('Failed to add host');
+    }
+  }, [address, hosts]);
+
+  const removeHost = useCallback(
+    async (h: string) => {
+      try {
+        const next = hosts.filter((x) => x !== h);
+        await chrome.storage.local.set({ hosts: next });
+        setHosts(next);
+        chrome.runtime.sendMessage({ type: 'refresh-highlights' });
+      } catch {
+        console.error('Failed to add host');
+      }
+    },
+    [hosts],
+  );
+
+  const onRemoveHost = useCallback((h: string) => () => removeHost(h), []);
+  const onChangeAddress = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setAddress(e.target.value);
+  }, []);
 
   useEffect(() => {
     chrome.storage.local.get(['hosts']).then((result) => {
@@ -26,40 +50,13 @@ function App() {
     });
   }, []);
 
-  async function addHost() {
-    const host = normalizeHost(address);
-
-    if (!host) return;
-
-    const next = Array.from(new Set([host, ...hosts]));
-    await chrome.storage.local.set({ hosts: next });
-    setHosts(next);
-    setAddress('');
-    try {
-      chrome.runtime.sendMessage({ type: 'refresh-highlights' });
-    } catch {
-      // ignore
-    }
-  }
-
-  async function removeHost(h: string) {
-    const next = hosts.filter((x) => x !== h);
-    await chrome.storage.local.set({ hosts: next });
-    setHosts(next);
-    try {
-      chrome.runtime.sendMessage({ type: 'refresh-highlights' });
-    } catch {
-      // ignore
-    }
-  }
-
   return (
     <div style={{ padding: 12, minWidth: 320 }}>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Space.Compact style={{ width: '100%' }}>
           <Input
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={onChangeAddress}
             placeholder="Enter hostname (e.g., example.com)"
           />
           <Button onClick={addHost}>Add</Button>
@@ -75,7 +72,7 @@ function App() {
                 style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}
               >
                 <div style={{ flex: 1 }}>{h}</div>
-                <Button size="small" onClick={() => removeHost(h)} danger>
+                <Button size="small" onClick={onRemoveHost(h)} danger>
                   Remove
                 </Button>
               </div>
@@ -85,7 +82,7 @@ function App() {
       </Space>
     </div>
   );
-}
+};
 
 const root = createRoot(document.getElementById('root')!);
 root.render(<App />);
