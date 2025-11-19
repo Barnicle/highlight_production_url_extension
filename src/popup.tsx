@@ -1,6 +1,8 @@
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Input, Button, Space } from 'antd';
+import Button from 'antd/es/button';
+import Space from 'antd/es/space';
+import Input from 'antd/es/input';
 import 'antd/dist/reset.css';
 import { normalizeHost } from './common/helpers';
 
