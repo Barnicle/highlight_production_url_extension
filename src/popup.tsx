@@ -1,36 +1,39 @@
-import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, FC, KeyboardEvent, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Button from 'antd/es/button';
 import Space from 'antd/es/space';
 import Input from 'antd/es/input';
-import 'antd/dist/reset.css';
 import { normalizeHost } from './common/helpers';
+import { Flex, Typography } from 'antd';
 
 const App: FC = () => {
   const [address, setAddress] = useState('');
   const [hosts, setHosts] = useState<string[]>([]);
 
-  const addHost = useCallback(async () => {
+  const addHost = useCallback(() => {
     const host = normalizeHost(address);
 
     if (!host) return;
 
     const next = Array.from(new Set([host, ...hosts]));
     try {
-      await chrome.storage.local.set({ hosts: next });
       setHosts(next);
       setAddress('');
+      chrome.storage.local.set({ hosts: next });
+      console.log(next);
     } catch {
       console.error('Failed to add host');
     }
   }, [address, hosts]);
 
   const removeHost = useCallback(
-    async (h: string) => {
+    (h: string) => {
       try {
+        console.log(hosts, h);
+
         const next = hosts.filter((x) => x !== h);
-        await chrome.storage.local.set({ hosts: next });
         setHosts(next);
+        chrome.storage.local.set({ hosts: next });
       } catch {
         console.error('Failed to add host');
       }
@@ -38,7 +41,13 @@ const App: FC = () => {
     [hosts],
   );
 
-  const onRemoveHost = useCallback((h: string) => () => removeHost(h), []);
+  const onKeydown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') addHost();
+    },
+    [addHost],
+  );
+
   const onChangeAddress = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setAddress(e.target.value);
   }, []);
@@ -51,34 +60,35 @@ const App: FC = () => {
   }, []);
 
   return (
-    <div style={{ padding: 12, minWidth: 320 }}>
+    <div style={{ padding: 6, maxHeight: 800, width: 400 }}>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Space.Compact style={{ width: '100%' }}>
           <Input
             value={address}
-            onChange={onChangeAddress}
             placeholder="Enter hostname (e.g., example.com)"
+            onChange={onChangeAddress}
+            onPressEnter={addHost}
+            onKeyDown={onKeydown}
           />
-          <Button onClick={addHost}>Add</Button>
+          <Button onClick={addHost} color="primary" variant="solid">
+            Add
+          </Button>
         </Space.Compact>
-        <Space></Space>
-        <div>
+
+        <Flex vertical gap={4}>
           {hosts.length === 0 ? (
             <div style={{ color: '#666' }}>No saved hosts</div>
           ) : (
             hosts.map((h) => (
-              <div
-                key={h}
-                style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}
-              >
-                <div style={{ flex: 1 }}>{h}</div>
-                <Button size="small" onClick={onRemoveHost(h)} danger>
+              <Flex justify="space-between" align="center" key={h}>
+                <Typography.Text>{h}</Typography.Text>
+                <Button size="small" onClick={() => removeHost(h)} danger>
                   Remove
                 </Button>
-              </div>
+              </Flex>
             ))
           )}
-        </div>
+        </Flex>
       </Space>
     </div>
   );
